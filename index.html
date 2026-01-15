@@ -5,43 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Simple Paint</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; margin: 0; overflow: hidden; }
-        #toolbar { padding: 10px; background: #333; width: 100%; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; align-items: center; }
-        canvas { background: white; border: 2px solid #999; cursor: crosshair; touch-action: none; margin-top: 5px; }
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background: #f0f0f0; 
+            margin: 0; 
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Stack toolbar items vertically */
+        #toolbar { 
+            padding: 10px; 
+            background: #333; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 12px; 
+        }
+
+        /* Groups buttons into rows within the column */
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        canvas { 
+            background: white; 
+            border: 1px solid #999; 
+            cursor: crosshair; 
+            touch-action: none; 
+            flex-grow: 1; /* Takes up remaining space */
+            width: 95vw;
+            margin: 10px 0;
+        }
         
-        button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        button { padding: 10px 16px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
         
-        /* Color Button Styling */
         .color-btn { 
-            width: 35px; 
-            height: 35px; 
+            width: 45px; 
+            height: 45px; 
             border-radius: 50%; 
             border: 2px solid white; 
             position: relative; 
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white; /* Color of the checkmark */
-            font-size: 20px;
+            color: white;
+            font-size: 24px;
         }
 
-        /* The Checkmark Logic */
         .color-btn.active::after {
             content: '✓';
-            text-shadow: 0px 0px 3px rgba(0,0,0,0.5);
+            text-shadow: 0px 0px 3px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
 
 <div id="toolbar">
-    <button onclick="clearCanvas()" style="background: #eee; color: black;">Wipe Clean</button>
-    <button id="eraserBtn" onclick="useEraser()" style="background: #ddd; color: black;">Eraser</button>
+    <div class="button-row">
+        <button onclick="clearCanvas()" style="background: #ff4d4d; color: white;">Wipe Clean</button>
+        <button id="eraserBtn" onclick="useEraser()" style="background: #ddd; color: black;">Eraser</button>
+    </div>
     
-    <button id="btn-black" class="color-btn active" style="background: black;" onclick="changeColor('black', this)"></button>
-    <button id="btn-red" class="color-btn" style="background: red;" onclick="changeColor('red', this)"></button>
-    <button id="btn-blue" class="color-btn" style="background: blue;" onclick="changeColor('blue', this)"></button>
-    <button id="btn-green" class="color-btn" style="background: green;" onclick="changeColor('green', this)"></button>
+    <div class="button-row">
+        <button id="btn-black" class="color-btn active" style="background: black;" onclick="changeColor('black', this)"></button>
+        <button id="btn-red" class="color-btn" style="background: red;" onclick="changeColor('red', this)"></button>
+        <button id="btn-blue" class="color-btn" style="background: blue;" onclick="changeColor('blue', this)"></button>
+        <button id="btn-green" class="color-btn" style="background: green;" onclick="changeColor('green', this)"></button>
+    </div>
 </div>
 
 <canvas id="paintCanvas"></canvas>
@@ -50,8 +88,13 @@
     const canvas = document.getElementById('paintCanvas');
     const ctx = canvas.getContext('2d');
     
-    canvas.width = window.innerWidth - 20;
-    canvas.height = window.innerHeight - 100;
+    // Auto-resize canvas logic
+    function resize() {
+        canvas.width = window.innerWidth * 0.95;
+        canvas.height = window.innerHeight - document.getElementById('toolbar').offsetHeight - 40;
+    }
+    window.addEventListener('resize', resize);
+    resize();
 
     let drawing = false;
     let color = 'black';
@@ -80,43 +123,32 @@
         ctx.moveTo(x, y);
     }
 
-    // --- Button Logic ---
-
     function changeColor(newColor, element) {
         color = newColor;
         lineWidth = 5;
-        
-        // 1. Remove 'active' class from all color buttons
-        document.querySelectorAll('.color-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // 2. Add 'active' class to the clicked button
+        document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
     }
 
     function useEraser() {
         color = 'white';
-        lineWidth = 20;
-        
-        // Remove checkmark from all color buttons when eraser is active
-        document.querySelectorAll('.color-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        lineWidth = 25;
+        document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
     }
 
     function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(confirm("Clear everything?")) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
     }
 
-    // Event Listeners
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     window.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('touchstart', startDrawing);
     canvas.addEventListener('touchmove', draw);
     window.addEventListener('touchend', stopDrawing);
-
 </script>
+
 </body>
 </html>
